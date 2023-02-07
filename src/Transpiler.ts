@@ -125,10 +125,11 @@ export abstract class LuaTranspiler {
             "-- https://github.com/Perryvw/TypescriptToLua\n";
         }
         let result = header;
-        if (!this.options.dontRequireLuaLib) {
-            // require helper functions
-            result += `require("typescript_lualib")\n`;
-        }
+        // if (!this.options.dontRequireLuaLib) {
+        //     // require helper functions
+        //     result += `local ts2lua = require("typescript_lualib")\n`;
+        // }
+        result += `local ts2lua = require("typescript_lualib")\n`;
         if (this.isModule) {
             // Shadow exports if it already exists
             result += "local exports = exports or {}\n";
@@ -755,7 +756,7 @@ export abstract class LuaTranspiler {
                     result = `${rhs}[${lhs}]~=nil`;
                     break;
                 case ts.SyntaxKind.InstanceOfKeyword:
-                    result = `TS_instanceof(${lhs}, ${rhs})`;
+                    result = `ts2lua.TS_instanceof(${lhs}, ${rhs})`;
                     break;
                 default:
                     throw new TranspileError(
@@ -799,7 +800,7 @@ export abstract class LuaTranspiler {
         const val1 = this.transpileExpression(node.whenTrue);
         const val2 = this.transpileExpression(node.whenFalse);
 
-        return `TS_ITE(${condition},function() return ${val1} end,function() return ${val2} end)`;
+        return `ts2lua.TS_ITE(${condition},function() return ${val1} end,function() return ${val2} end)`;
     }
 
     public transpilePostfixUnaryExpression(node: ts.PostfixUnaryExpression): string {
@@ -839,7 +840,9 @@ export abstract class LuaTranspiler {
     public transpileNewExpression(node: ts.NewExpression): string {
         const name = this.transpileExpression(node.expression);
         const params = node.arguments ? this.transpileArguments(node.arguments, ts.createTrue()) : "true";
-
+        if (name === 'Map' || name === 'Set') {
+            return `ts2lua.${name}.new(${params})`;
+        }
         return `${name}.new(${params})`;
     }
 
@@ -925,7 +928,7 @@ export abstract class LuaTranspiler {
         const caller = this.transpileExpression(expression.expression);
         switch (expression.name.escapedText) {
             case "replace":
-                return `TS_replace(${caller},${params})`;
+                return `ts2lua.TS_replace(${caller},${params})`;
             case "indexOf":
                 if (node.arguments.length === 1) {
                     return `(string.find(${caller},${params},1,true) or 0)-1`;
@@ -945,7 +948,7 @@ export abstract class LuaTranspiler {
             case "toUpperCase":
                 return `string.upper(${caller})`;
             case "split":
-                return `TS_split(${caller},${params})`;
+                return `ts2lua.TS_split(${caller},${params})`;
             case "charAt":
                 return `string.sub(${caller},${params}+1,${params}+1)`;
             default:
@@ -978,23 +981,23 @@ export abstract class LuaTranspiler {
         const caller = this.transpileExpression(expression.expression);
         switch (expression.name.escapedText) {
             case "push":
-                return `TS_push(${caller}, ${params})`;
+                return `ts2lua.TS_push(${caller}, ${params})`;
             case "forEach":
-                return `TS_forEach(${caller}, ${params})`;
+                return `ts2lua.TS_forEach(${caller}, ${params})`;
             case "indexOf":
-                return `TS_indexOf(${caller}, ${params})`;
+                return `ts2lua.TS_indexOf(${caller}, ${params})`;
             case "map":
-                return `TS_map(${caller}, ${params})`;
+                return `ts2lua.TS_map(${caller}, ${params})`;
             case "filter":
-                return `TS_filter(${caller}, ${params})`;
+                return `ts2lua.TS_filter(${caller}, ${params})`;
             case "some":
-                return `TS_some(${caller}, ${params})`;
+                return `ts2lua.TS_some(${caller}, ${params})`;
             case "every":
-                return `TS_every(${caller}, ${params})`;
+                return `ts2lua.TS_every(${caller}, ${params})`;
             case "slice":
-                return `TS_slice(${caller}, ${params})`;
+                return `ts2lua.TS_slice(${caller}, ${params})`;
             case "splice":
-                return `TS_splice(${caller}, ${params})`;
+                return `ts2lua.TS_splice(${caller}, ${params})`;
             case "join":
                 if (node.arguments.length === 0) {
                     // if seperator is omitted default seperator is ","

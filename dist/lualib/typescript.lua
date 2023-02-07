@@ -1,27 +1,32 @@
 -- Ternary operator
-function TS_ITE(condition, v1f, v2f)
+local exports = exports or {}
+
+local function TS_ITE(condition, v1f, v2f)
     if condition then
         return v1f()
     else
         return v2f()
     end
 end
+exports.TS_ITE = TS_ITE
 
-function TS_forEach(list, func)
+local function TS_forEach(list, func)
     for i, v in ipairs(list) do
         func(v, i-1, list)
     end
 end
+exports.TS_forEach = TS_forEach
 
-function TS_map(list, func)
+local function TS_map(list, func)
     local out = {}
     for _, v in ipairs(list) do
         table.insert(out, func(v))
     end
     return out
 end
+exports.TS_map = TS_map
 
-function TS_filter(list, func)
+local function TS_filter(list, func)
     local out = {}
     for _, v in ipairs(list) do
         if func(v) then
@@ -30,8 +35,9 @@ function TS_filter(list, func)
     end
     return out
 end
+exports.TS_filter = TS_filter
 
-function TS_slice(list, startI, endI)
+local function TS_slice(list, startI, endI)
     if not endI or endI > #list then endI = #list end
     if startI < 0 then startI = math.max(#list + startI, 1) end
     if endI < 0 then endI = math.max(#list + endI, 1) end
@@ -41,9 +47,10 @@ function TS_slice(list, startI, endI)
     end
     return out
 end
+exports.TS_slice = TS_slice
 
 -- https://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf
-function TS_splice(list, start, deleteCount, ...)
+local function TS_splice(list, start, deleteCount, ...)
     -- 1. 2.
     local len = #list
 
@@ -151,16 +158,19 @@ function TS_splice(list, start, deleteCount, ...)
     -- 20.
     return out
 end
+exports.TS_splice = TS_splice
 
-function TS_some(list, func)
+local function TS_some(list, func)
     return #TS_filter(list, func) > 0
 end
+exports.TS_some = TS_some
 
-function TS_every(list, func)
+local function TS_every(list, func)
     return #list == #TS_filter(list, func)
 end
+exports.TS_every = TS_every
 
-function TS_indexOf(list, object )
+local function TS_indexOf(list, object )
     for i = 1, #list do
         if object == list[i] then
             return i - 1
@@ -168,13 +178,15 @@ function TS_indexOf(list, object )
     end
     return -1
 end
+exports.TS_indexOf = TS_indexOf
 
-function TS_replace(source, searchVal, newVal)
+local function TS_replace(source, searchVal, newVal)
     local result = string.gsub(source, searchVal, newVal)
     return result
 end
+exports.TS_replace = TS_replace
 
-function TS_split(str, separator)
+local function TS_split(str, separator)
     local out = {}
 
     if separator == "" then
@@ -203,14 +215,16 @@ function TS_split(str, separator)
     end
     return out
 end
+exports.TS_split = TS_split
 
-function TS_push(list, ...)
+local function TS_push(list, ...)
     for _, v in ipairs({...}) do
         list[#list + 1] = v
     end
 end
+exports.TS_push = TS_push
 
-function TS_instanceof(obj, class)
+local function TS_instanceof(obj, class)
     while obj ~= nil do
         if obj.__index == class then
             return true
@@ -219,9 +233,11 @@ function TS_instanceof(obj, class)
     end
     return false
 end
+exports.TS_instanceof = TS_instanceof
 
 -- Set data structure implementation
-Set = Set or {}
+local Set = Set or {}
+exports.Set = Set
 Set.__index = Set
 function Set.new(construct, ...)
     local instance = setmetatable({}, Set)
@@ -277,7 +293,8 @@ function Set.values(self)
 end
 
 -- Set data structure implementation
-Map = Map or {}
+local Map = Map or {}
+exports.Map = Map
 Map.__index = Map
 function Map.new(construct, ...)
     local instance = setmetatable({}, Map)
@@ -337,3 +354,5 @@ function Map.values(self)
     end
     return out
 end
+
+return exports
